@@ -23,6 +23,7 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get update \
         liblist-moreutils-perl \
         libgd-dev \
         git \
+        wget \
 
     && cpanm --notest Test::Nginx IPC::Run \
 
