@@ -13,6 +13,7 @@ ARG OPENSSL_PATCH_VER="1.1.0d"
 
 RUN DEBIAN_FRONTEND=noninteractive apt-get update \
     && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+        build-essential \
         axel \
         cpanminus \
         libtest-base-perl \
@@ -56,10 +57,10 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get update \
     && git clone https://github.com/openresty/stream-lua-nginx-module.git ../stream-lua-nginx-module \
     && git clone -b v2.1-agentzh https://github.com/openresty/luajit2.git luajit2 \
 
-    && cd luajit2/ \
-    && make -j${JOBS} CCDEBUG=-g Q= PREFIX=${LUAJIT_PREFIX} CC=$CC XCFLAGS='-DLUA_USE_APICHECK -DLUA_USE_ASSERT -msse4.2' \
-    && make install PREFIX=${LUAJIT_PREFIX} \
-    && cd .. \
+    #&& cd luajit2/ \
+    #&& make -j${JOBS} CCDEBUG=-g Q= PREFIX=${LUAJIT_PREFIX} CC=$CC XCFLAGS='-DLUA_USE_APICHECK -DLUA_USE_ASSERT -msse4.2' \
+    #&& make install PREFIX=${LUAJIT_PREFIX} \
+    #&& cd .. \
 
     && tar xzf download-cache/drizzle7-${DRIZZLE_VER}.tar.gz && cd drizzle7-${DRIZZLE_VER} \
     && ./configure --prefix=${LIBDRIZZLE_PREFIX} --without-server \
