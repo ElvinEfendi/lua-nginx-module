@@ -1,5 +1,6 @@
 FROM ubuntu:xenial
 
+ARG CC="gcc"
 ARG NGINX_VERSION="1.15.8"
 ARG JOBS="3"
 ARG LUAJIT_PREFIX="/opt/luajit21"
@@ -14,6 +15,7 @@ ARG OPENSSL_PATCH_VER="1.1.0d"
 RUN DEBIAN_FRONTEND=noninteractive apt-get update \
     && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
         build-essential \
+        python \
         axel \
         cpanminus \
         libtest-base-perl \
