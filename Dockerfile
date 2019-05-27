@@ -1,25 +1,40 @@
+# First build the image using docker `docker build -t lua_ngx .`
+# Then run it using `docker run -w /app --rm -it -v ${PWD}:/app lua_ngx t/161-load-resty-core.t`
+# If not argument is passed it'll run all the tests in t/.
+
 FROM ubuntu:xenial
 
-ENV CC="gcc"
 ENV NGINX_VERSION="1.15.8"
+ENV OPENSSL_VER="1.1.0j"
+ENV OPENSSL_OPT=""
+ENV OPENSSL_PATCH_VER="1.1.0d"
+ENV DRIZZLE_VER="2011.07.21"
+
+ENV CC="gcc"
 ENV JOBS="3"
+ENV NGX_BUILD_JOBS=$JOBS
+ENV NGX_BUILD_CC=$CC
+ENV TEST_NGINX_SLEEP=0.006
+
 ENV LUAJIT_PREFIX="/opt/luajit21"
 ENV LUAJIT_LIB=$LUAJIT_PREFIX/lib
 ENV LUAJIT_INC=$LUAJIT_PREFIX/include/luajit-2.1
 ENV LUA_INCLUDE_DIR=$LUAJIT_INC
-ENV DRIZZLE_VER="2011.07.21"
-ENV LIBDRIZZLE_PREFIX="/opt/drizzle"
-ENV LIBDRIZZLE_INC=$LIBDRIZZLE_PREFIX/include/libdrizzle-1.0
-ENV LIBDRIZZLE_LIB=$LIBDRIZZLE_PREFIX/lib
+
+ENV LD_LIBRARY_PATH=$LUAJIT_LIB:$LD_LIBRARY_PATH
+
 ENV PCRE_VER="8.41"
 ENV PCRE_PREFIX="/opt/pcre"
+ENV PCRE_LIB=$PCRE_PREFIX/lib
+ENV PCRE_INC=$PCRE_PREFIX/include
+
 ENV OPENSSL_PREFIX=/opt/ssl
 ENV OPENSSL_LIB=$OPENSSL_PREFIX/lib
 ENV OPENSSL_INC=$OPENSSL_PREFIX/include
-ENV OPENSSL_VER="1.1.0j"
-ENV OPENSSL_OPT=""
-ENV OPENSSL_PATCH_VER="1.1.0d"
 
+ENV LIBDRIZZLE_PREFIX="/opt/drizzle"
+ENV LIBDRIZZLE_INC=$LIBDRIZZLE_PREFIX/include/libdrizzle-1.0
+ENV LIBDRIZZLE_LIB=$LIBDRIZZLE_PREFIX/lib
 
 RUN DEBIAN_FRONTEND=noninteractive apt-get update \
     && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
@@ -95,17 +110,16 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get update \
     && make PATH=$PATH install_sw \
     && cd ..
 
-ENV PATH=/work/nginx/sbin:/openresty-devel-utils:$PATH
-ENV NGX_BUILD_CC=$CC
-
 COPY . /
 
-#RUN ./util/build.sh ${NGINX_VERSION} \
-#    && nginx -V \
-#    && ldd `which nginx`|grep -E 'luajit|ssl|pcre'
+ENV PATH=/work/nginx/sbin:/openresty-devel-utils:$PATH
+
+RUN ./util/build.sh ${NGINX_VERSION} \
+    && nginx -V \
+    && ldd `which nginx`|grep -E 'luajit|ssl|pcre'
 
 ENV LD_PRELOAD=$PWD/mockeagain/mockeagain.so
 ENV LD_LIBRARY_PATH=$PWD/mockeagain:$LD_LIBRARY_PATH
 
-#prove -Itest-nginx/lib -r t
-CMD ["prove", "-I", "test-nginx/lib"]
+ENTRYPOINT ["prove", "-I", "test-nginx/lib"]
+CMD ["-r", "t/"]
